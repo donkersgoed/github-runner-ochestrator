@@ -35,7 +35,7 @@ RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o /t
     /tmp/aws/install && \
     rm -rf /tmp/awscliv2.zip /tmp/aws
 
-ENV RUNNER_VERSION=2.335.1
+ENV RUNNER_VERSION=2.338.0
 WORKDIR /actions-runner
 
 RUN curl -fsSL -O "https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-arm64-${RUNNER_VERSION}.tar.gz" && \
