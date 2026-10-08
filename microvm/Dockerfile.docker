@@ -15,6 +15,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 # Docker engine (daemon + CLI + buildx) for jobs that bundle assets via Docker, e.g. CDK's
 # aws-lambda-python-alpha PythonFunction. The daemon is started in entrypoint.sh at job time
 # (Docker-in-Docker); there is no init system in the microVM to start it for us.
+#
+# Versions are pinned so an image rebuild does not silently pick up a new engine. Unpinned, the
+# 2.0 rebuild moved docker-ce 29.6.1 -> 29.8.2 and containerd.io 2.2.5 -> 2.3.6, and the MicroVM
+# crashed ("Internal service error.") while starting a CDK bundling container. These are the
+# versions from image 1.0, which ran Deploy jobs successfully. Bump deliberately and test a full
+# CDK deploy job before rolling out.
+ARG DOCKER_VERSION=5:29.6.1-1~ubuntu.24.04~noble
+ARG CONTAINERD_VERSION=2.2.5-1~ubuntu.24.04~noble
+ARG BUILDX_VERSION=0.35.0-1~ubuntu.24.04~noble
+ARG COMPOSE_VERSION=5.2.0-1~ubuntu.24.04~noble
 RUN install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
     chmod a+r /etc/apt/keyrings/docker.asc && \
@@ -22,7 +32,9 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
       > /etc/apt/sources.list.d/docker.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-      docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin iptables && \
+      "docker-ce=${DOCKER_VERSION}" "docker-ce-cli=${DOCKER_VERSION}" \
+      "containerd.io=${CONTAINERD_VERSION}" "docker-buildx-plugin=${BUILDX_VERSION}" \
+      "docker-compose-plugin=${COMPOSE_VERSION}" iptables && \
     rm -rf /var/lib/apt/lists/*
 # Signals app.js to start dockerd+dnsmasq at init and gate /ready on docker readiness.
 # Not set in Dockerfile.base (slim/no-docker flavor), where dockerState initialises to 'ready'.
