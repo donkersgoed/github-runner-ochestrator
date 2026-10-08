@@ -27,7 +27,10 @@ function loadParam(name: string | undefined, envLabel: string): Promise<string> 
 
 let cachedCreds: Promise<string> | undefined;
 const getAppCredentials = (): Promise<string> =>
-  (cachedCreds ??= loadParam(APP_CREDENTIALS_PARAM, 'GITHUB_APP_CREDENTIALS_PARAM'));
+  (cachedCreds ??= loadParam(APP_CREDENTIALS_PARAM, 'GITHUB_APP_CREDENTIALS_PARAM').catch((err) => {
+    cachedCreds = undefined;
+    throw err;
+  }));
 
 // Warm up during init; no-op catch avoids an init-time unhandledRejection (handler re-awaits).
 getAppCredentials().catch(() => undefined);

@@ -25,7 +25,10 @@ function loadParam(name: string | undefined, envLabel: string): Promise<string> 
 
 let cachedSecret: Promise<string> | undefined;
 const getWebhookSecret = (): Promise<string> =>
-  (cachedSecret ??= loadParam(WEBHOOK_SECRET_PARAM, 'WEBHOOK_SECRET_PARAM'));
+  (cachedSecret ??= loadParam(WEBHOOK_SECRET_PARAM, 'WEBHOOK_SECRET_PARAM').catch((err) => {
+    cachedSecret = undefined;
+    throw err;
+  }));
 
 // Warm up during init; no-op catch avoids an init-time unhandledRejection (handler re-awaits).
 getWebhookSecret().catch(() => undefined);
